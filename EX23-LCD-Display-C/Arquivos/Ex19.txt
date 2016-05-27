@@ -1,0 +1,70 @@
+//CHANAS Damien ex19_C_display_7_seg
+//     |= ~
+//           {           
+//           }
+#include <msp430.h>
+
+int unidades = 0;
+int dezenas  = 0;
+int centenas = 0;
+int displaytab[10] = {0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0x7F,0x6F}; 
+
+//Rotina de Interrupção do Timer0_A:
+#pragma vector = TIMER0_A0_VECTOR
+__interrupt void interr_timer_A (void)
+{ 
+  unidades++;
+  if(unidades > 9 )
+  {
+      unidades = 0;
+      dezenas++;
+  }
+  if(dezenas > 9 )
+  {
+    dezenas = 0;
+    centenas++;
+  }    
+  if(centenas > 5 )
+  {
+    centenas = 0;  
+  }  
+  TA0CCTL0 &=~ CCIFG;   //Limpar flag de interrupção
+}
+
+void   main(void)
+       {     
+          //Configurar µC
+          WDTCTL = WDTPW + WDTHOLD;           // Desativa o WDT watchdog
+          P1DIR =  0x7F;                      //seta output direction para os bits  0 a 6 do P1
+          P2DIR =  0x07;                      //seta output direction para os bits  0 a 2 do P2
+          P1OUT =  0x00;                     //Apagar os segmentos
+          P2OUT =  0x00;                     //Apagar os segmentos
+
+          //Conf. Timer0_A
+          TA0CTL = TASSEL_2+ID_1+MC_0 ;
+          TA0CCTL0 = CCIE ; 
+          TA0CCR0 = 50000;
+          TA0CTL |=  BIT4;                //inicia o timer em modo Up MC_1
+          
+          //Conf. DC0     OPTIONAL!!
+          BCSCTL1 = CALBC1_1MHZ;             //Ajuste do DCO para 1MHz
+          DCOCTL = CALDCO_1MHZ;              //Ajuste do DCO para 1MHz
+          
+          _BIS_SR(GIE);                     //__bis_SR_register(GIE); //__enable_interrupt();
+
+          while(1)                              //infinite loop
+           {
+             P2OUT = 0x01;                       //unidade
+             P1OUT =  displaytab[unidades];
+             __delay_cycles(5000);             //Temporização de 5ms
+             
+             P2OUT = 0x02;                      //dezena
+             P1OUT =  displaytab[dezenas];
+             __delay_cycles(5000);             //Temporização de 5ms
+             
+             P2OUT = 0x04;                      //centena
+             P1OUT =  displaytab[centenas];
+             __delay_cycles(5000);              //Temporização de 5ms             
+           }      
+         
+        }

@@ -1,0 +1,139 @@
+{\rtf1\ansi\deff0{\fonttbl{\f0\fnil\fcharset0 Courier New;}}
+{\*\generator Msftedit 5.41.21.2510;}\viewkind4\uc1\pard\lang1046\f0\fs22 /***************************** Exerc\'c3\-cio 23 ***********************************************/\par
+/* Configurar display LCD\tab\tab\tab\tab\tab\tab                   */\par
+/* PEDRO MARIZ \tab\tab\tab\tab\tab\tab\tab\tab\tab\tab   */\par
+/******************************************************************************************/\par
+\tab\tab\tab\tab\tab\tab\tab\tab     \par
+\par
+#include <msp430.h>\par
+\par
+#define\tab RS\tab 0x40\tab\tab /* Mascara do pino P1.6 */\par
+#define\tab E\tab 0x80\tab\tab /* Mascara do pino P1.7 */\par
+#define D7\tab 0x80\tab\tab /* Mascara do pino P2.7 */\par
+#define D6\tab 0x40\tab\tab /* Mascara do pino P2.6 */ \par
+#define D5\tab 0x20\tab\tab /* Mascara do pino P2.5 */\par
+#define D4\tab 0x10\tab\tab /* Mascara do pino P2.4 */\par
+\tab\par
+\tab /* Configurar uC */\par
+\tab void Configurar_uC(void)\par
+\tab\{\par
+   \tab\tab  WDTCTL\tab  = WDTPW + WDTHOLD;    \tab\tab /* Desabilita o watchdog */\par
+    \tab\tab  BCSCTL1 = CALBC1_1MHZ;       \tab\tab /* Configura\'c3\'a7\'c3\'a3o do clock para 1MHz */\par
+   \tab\tab  DCOCTL  = CALDCO_1MHZ;        \tab\tab /* Configura\'c3\'a7\'c3\'a3o do clock para 1MHz */\par
+    \tab\tab  P1DIR  |= RS+E;        \tab\tab /* Ajusta os pinos RS e E como sa\'c3\-da  */\par
+\tab\tab  P2DIR\tab |= D4+D5+D6+D7;\tab\tab\tab /* Ajusta os pinos D4...D7 como sa\'c3\-da */\tab\par
+\tab\}\par
+\tab    \par
+\par
+\tab /* PROGRAMA PRINCIPAL */\par
+\tab void main(void)\tab\tab\tab       \tab\par
+\tab\{\par
+\tab\tab Configurar_uC(); \tab\tab\par
+\tab\tab __delay_cycles(15000);\tab\tab\tab /* Delay de 15ms */\par
+\tab\tab P1OUT &= ~RS;\tab\tab\tab\tab /* RS = 0, enviar comando */\par
+\tab\tab P2OUT &= D4+D5;\tab\tab\tab\tab /* Envia nibble(+) 0011, do comando 0x30 */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*\\\tab\tab\tab\tab */\tab\tab\par
+\tab\tab P1OUT |= E;\tab\tab\tab\tab /* Envia pulso de Enable de 1us */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*/\tab\tab\tab\tab */\par
+\tab\tab P2OUT &= 0x00;\tab\tab\tab\tab /* Envia nibble(-) 0000, do comando 0x30 */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*\\\tab\tab\tab\tab */\tab\tab\par
+\tab\tab P1OUT |= E;\tab\tab\tab\tab /* Envia pulso de Enable de 1us */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*/                             */\par
+\tab\tab\par
+\tab\tab __delay_cycles(5000);\tab\tab\tab /* Delay de 5ms */\par
+\tab\tab P1OUT &= ~RS;\tab\tab\tab\tab /* RS = 0, enviar comando */\par
+\tab\tab P2OUT &= D4+D5;\tab\tab\tab\tab /* Envia nibble(+) 0011, do comando 0x30 */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*\\\tab\tab\tab\tab */\tab\tab\par
+\tab\tab P1OUT |= E;\tab\tab\tab\tab /* Envia pulso de Enable de 1us */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*/\tab\tab\tab\tab */\par
+\tab\tab P2OUT &= 0x00;\tab\tab\tab\tab /* Envia nibble(-) 0000, do comando 0x30 */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*\\\tab\tab\tab\tab */\tab\tab\par
+\tab\tab P1OUT |= E;\tab\tab\tab\tab /* Envia pulso de Enable de 1us */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*/\tab\tab\tab\tab */\par
+\tab\tab\par
+\tab\tab __delay_cycles(1000);\tab\tab\tab /* Delay de 1ms */\par
+\tab\tab P1OUT &= ~RS;\tab\tab\tab\tab /* RS = 0, enviar comando */\par
+\tab\tab P2OUT &= D4+D5;\tab\tab\tab\tab /* Envia nibble(+) 0011, do comando 0x30 */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*\\\tab\tab\tab\tab */\tab\tab\par
+\tab\tab P1OUT |= E;\tab\tab\tab\tab /* Envia pulso de Enable de 1us */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*/\tab\tab\tab\tab */\par
+\tab\tab P2OUT &= 0x00;\tab\tab\tab\tab /* Envia nibble(-) 0000, do comando 0x30 */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*\\\tab\tab\tab\tab */\tab\tab\par
+\tab\tab P1OUT |= E;\tab\tab\tab\tab /* Envia pulso de Enable de 1us */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*/\tab\tab\tab\tab */\par
+\tab\tab\par
+\tab\tab __delay_cycles(1000);\tab\tab\tab /* Delay de 1ms */\par
+\tab\tab P1OUT &= ~RS;\tab\tab\tab\tab /* RS = 0, enviar comando */\par
+\tab\tab P2OUT &= D5;\tab\tab\tab\tab /* Envia nibble(+) 0010, do comando 0x20 */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*\\\tab\tab\tab\tab */\tab\tab\par
+\tab\tab P1OUT |= E;\tab\tab\tab\tab /* Envia pulso de Enable de 1us */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*/\tab\tab\tab\tab */\par
+\tab\tab P2OUT &= 0x00;\tab\tab\tab\tab /* Envia nibble(-) 0000, do comando 0x20 */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*\\\tab\tab\tab\tab */\tab\tab\par
+\tab\tab P1OUT |= E;\tab\tab\tab\tab /* Envia pulso de Enable de 1us */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*/\tab\tab\tab\tab */\par
+\tab\tab\par
+\tab\tab __delay_cycles(1000);\tab\tab\tab /* Delay de 1ms */\par
+\tab\tab P1OUT &= ~RS;\tab\tab\tab\tab /* RS = 0, enviar comando */\par
+\tab\tab P2OUT &= D5;\tab\tab\tab\tab /* Envia nibble(+) 0010, do comando 0x28 */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*\\\tab\tab\tab\tab */\tab\tab\par
+\tab\tab P1OUT |= E;\tab\tab\tab\tab /* Envia pulso de Enable de 1us */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*/\tab\tab\tab\tab */\par
+\tab\tab P2OUT &= D7;\tab\tab\tab\tab /* Envia nibble(-) 1000, do comando 0x28 */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*\\\tab\tab\tab\tab */\tab\tab\par
+\tab\tab P1OUT |= E;\tab\tab\tab\tab /* Envia pulso de Enable de 1us */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*/\tab\tab\tab\tab */\par
+\tab\tab\tab\par
+\tab\tab __delay_cycles(1000);\tab\tab\tab /* Delay de 1ms */\par
+\tab\tab P1OUT &= ~RS;\tab\tab\tab\tab /* RS = 0, enviar comando */\par
+\tab\tab P2OUT &= 0x00;\tab\tab\tab\tab /* Envia nibble(+) 0000, do comando 0x08 */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*\\\tab\tab\tab\tab */\tab\tab\par
+\tab\tab P1OUT |= E;\tab\tab\tab\tab /* Envia pulso de Enable de 1us */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*/\tab\tab\tab\tab */\par
+\tab\tab P2OUT &= D7;\tab\tab\tab\tab /* Envia nibble(-) 1000, do comando 0x08 */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*\\\tab\tab\tab\tab */\tab\tab\par
+\tab\tab P1OUT |= E;\tab\tab\tab\tab /* Envia pulso de Enable de 1us */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*/\tab\tab\tab\tab */\par
+\tab\tab\par
+\tab\tab __delay_cycles(1000);\tab\tab\tab /* Delay de 1ms */\par
+\tab\tab P1OUT &= ~RS;\tab\tab\tab\tab /* RS = 0, enviar comando */\par
+\tab\tab P2OUT &= 0x00;\tab\tab\tab\tab /* Envia nibble(+) 0000, do comando 0x01 */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*\\\tab\tab\tab\tab */\tab\tab\par
+\tab\tab P1OUT |= E;\tab\tab\tab\tab /* Envia pulso de Enable de 1us */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*/\tab\tab\tab\tab */\par
+\tab\tab P2OUT &= D4;\tab\tab\tab\tab /* Envia nibble(-) 0001, do comando 0x01 */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*\\\tab\tab\tab\tab */\tab\tab\par
+\tab\tab P1OUT |= E;\tab\tab\tab\tab /* Envia pulso de Enable de 1us */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*/\tab\tab\tab\tab */\par
+\par
+\tab\tab __delay_cycles(1000);\tab\tab\tab /* Delay de 1ms */\par
+\tab\tab P1OUT &= ~RS;\tab\tab\tab\tab /* RS = 0, enviar comando */\par
+\tab\tab P2OUT &= 0x00;\tab\tab\tab\tab /* Envia nibble(+) 0000, do comando 0x06 */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*\\\tab\tab\tab\tab */\tab\tab\par
+\tab\tab P1OUT |= E;\tab\tab\tab\tab /* Envia pulso de Enable de 1us */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*/\tab\tab\tab\tab */\par
+\tab\tab P2OUT &= D5+D6;\tab\tab\tab\tab /* Envia nibble(-) 0110, do comando 0x06 */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*\\\tab\tab\tab\tab */\tab\tab\par
+\tab\tab P1OUT |= E;\tab\tab\tab\tab /* Envia pulso de Enable de 1us */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*/\tab\tab\tab\tab */\par
+\par
+\tab\tab __delay_cycles(1000);\tab\tab\tab /* Delay de 1ms */\par
+\tab\tab P1OUT &= ~RS;\tab\tab\tab\tab /* RS = 0, enviar comando */\par
+\tab\tab P2OUT &= 0x00;\tab\tab\tab\tab /* Envia nibble(+) 0000, do comando 0x0F */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*\\\tab\tab\tab\tab */\tab\tab\par
+\tab\tab P1OUT |= E;\tab\tab\tab\tab /* Envia pulso de Enable de 1us */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*/\tab\tab\tab\tab */\par
+\tab\tab P2OUT &= D4+D5+D6+D7;\tab\tab\tab /* Envia nibble(-) 1111, do comando 0x0F */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*\\\tab\tab\tab\tab */\tab\tab\par
+\tab\tab P1OUT |= E;\tab\tab\tab\tab /* Envia pulso de Enable de 1us */\par
+\tab\tab P1OUT &= ~E;\tab\tab\tab\tab /*/\tab\tab\tab\tab */\tab  \tab\tab  \tab\tab     \par
+    \tab\tab\tab\tab\tab\par
+\tab\}\par
+\par
+\tab\par
+\par
+\tab\par
+  \par
+\par
+}
+ 
