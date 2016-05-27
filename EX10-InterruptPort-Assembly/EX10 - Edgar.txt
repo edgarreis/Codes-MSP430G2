@@ -1,0 +1,119 @@
+/// EXERCICIO 10 ///
+
+#include <msp430.h>             ; Definições do MSP430
+//#define S2      0x08            ; Botão P1.3
+//#define cont            R10     ; Registrador
+#define st_bt           R5      ; Registrador Para Estado Anterior do Botão
+#define flag_blink      R4      ; Registrador Para o Flag Pisca
+#define temp            R6
+//temp: DS16  1                   ; cria a variavel temporizador
+
+// Alocação de Memória
+ORG     0xFFFE                  ; Alteração do PC
+DC16    main                    ; Define uma constante de 16 bits (main)
+RSEG    CODE                    ; coloca o programa no segmento CODE
+
+// Vetor de Interrupção
+ORG     0XFFE4                  ; (ASEG 0XFFE4)
+DC16   interrup_P1              ; Vetor de Interrupção
+        
+main:   CALL    #setup          ; Chama Função de Configuração
+        MOV.B   #0x00,flag_blink        ; Flag pisca = 0x00
+        
+test_flag:
+        CMP.W   #0x01,flag_blink       ; Compara o valor contido em flag com 0x01
+        JNZ     test_flag               ; Se não for Zero, ou seja, se flag_blink = 0x00
+        CALL    #blink_leds              ; Caso contrario chama função blink_leds
+        JMP     test_flag               ; Retorna ao inicio
+        
+blink_leds:
+        
+
+
+interrup_P1:
+	XOR.B	#0x01,flag_blink       //Inverte a flag (verificar se precisa de '&')	
+	CMP.B	#0x01,flag_blink	//testa a flag se o resuldado (cmp) der '0' (flag=1111)-> acende Led_vm
+	JNZ	clear_leds		//se o resultado (cmp) der difrente de '0' (flag=0000) -> apaga leds
+	BIS.B	#0x01,&P1OUT		//acende Led_vm		
+	MOV.W	#0x00,flag_blink	//reseta a flag_pisca
+
+clear_leds:
+	BIC.B	#0x40,&P1OUT		//Apaga leds
+	BIC.B	#0x01,&P1OUT	
+	MOV.B	#0x00,flag_blink	//reseta a flag_pisca
+	JMP     interrup_P1	
+        // retorna da interrupção
+	
+
+
+
+
+
+
+
+
+
+
+// MOV.B #0x01,st_bt       ; Estado anterior do botao
+// BIC.B #0x41,&P1OUT      ; Força em Zero P1.0 e P1.3
+       
+       
+botao:  BIT.B #0x08,&P1IN    ; BOTAO PRESSIONADO?
+        JNZ   bsolto           ; NAO - segue para verificar borda de descida
+        CALL  #verifica_borda
+        JMP   pula
+bsolto: BIS.B #0x01,R5 ; seta o estado anterior do botao
+pula:   BIT.B #0x01,R4
+        JZ    botao
+        CALL  #piscar
+        JMP   botao
+
+        //se o botao estiver pressionado
+verifica_borda:  BIT.B #0x01,R5 ; ESTADO ANTERIOR DO BOTAO ERA ALTO?
+                 JZ    volta    ; NAO - nao e borda de descida
+                 BIC.B #0x01,R5 ; reseta o estado anterior do botao
+                 XOR.B #0x01,R4 ; inverte o flag pisca
+                 BIT.B #0x01,R4 ; PISCA LIGADO? - verifica se o flag pisca esta setado
+                 JNZ   liga
+                 BIC.B #0x41,&P1OUT
+                 JMP   volta
+liga:            BIS.B #0x01,&P1OUT
+volta:           RET
+
+        //inverte os leds
+piscar:    CALL  #tempo 
+           XOR.B #0x41,&P1OUT ; inverte os leds
+           RET
+        //contador de tempo
+tempo:      MOV.W #0xF422,temp ; valor necessário que multiplicado por 4 ciclos de máquina contabiliza 250 milisegundos
+decremento: DEC.W temp         ; 1 ciclo de máquina -> quando tivermos 1-1=0 o flag de zero sera setado
+            NOP                ; 1 ciclo de máquina
+            JNZ   decremento   ; 2 ciclos de máquina
+            RET
+
+
+
+
+
+
+        // Setup do microcontrolador
+setup:  MOV.W #0x0400,SP                ; inicializar a pilha
+        MOV.W #WDTPW+WDTHOLD,&WDTCTL    ; desabilita o watchdog
+        
+        // Configuração dos Pinos
+        MOV.B #0x08,&P1REN              ; resistor enable faz a porta I/O
+        BIC.B #0x08,&P1DIR              ; seta o input no bit 3
+        MOV.B #0x41,&P1DIR              ; seta output direction para o bit 6 e 0
+        
+        // Setup de Interrupção
+        bis.b   #0x08,&P1IE                ; Habilita Interrupção do Pino
+        bis.b   #0x08,&P1IES              ; Define a Borda de Decida
+        bic.b   #0x08,&P1IFG              ; Resetar a Flag do Pino
+        
+        // Setup GIE
+        bis.w   #GIE,SR                 ; Habilita Interrupções
+        
+        RET           
+
+
+  END 

@@ -1,0 +1,71 @@
+/// EXERCICIO 09 ///
+
+#include <msp430.h>             // Definições do MSP430
+
+#define cont            R10     // Registrador
+#define st_bt           R11     // Registrador
+#define flag_blink      R12     // Registrador
+
+        ORG     0xFFFE          // Alteração do PC
+        DC16    main            // Define uma constante de 16 bits (main)
+        RSEG    CODE            // Realocação de Dados da memória 
+ 
+        // Função Principal
+main:   mov.w   #0x0400,SP              // Inicializar o Stack Pointer
+        mov.w   #WDTPW + WDTHOLD,&WDTCTL// Desativa o WDT
+        
+        // Estado dos Registradores
+        mov.w   #0x01,st_bt    // Estado anterior do Pino (inicia em 01)
+        mov.w   #0x00,flag_blink // Flag para Piscar (inicia em 00)
+
+        // Configuração dos Pinos
+        mov.b   #0x41,&P1DIR    // Direção dos Pinos P1.6 E P1.0 OUT (#0x41 = 0100 0001)
+        bis.b   #0x08,&P1REN    // Habilita Resistor pullup P1.3
+        bis.b   #0x08,&P1OUT    // Seta Resistor pullup P1.3
+
+        // Desligar LEDs
+        bic.b   #0x01,&P1OUT    // Desligar P1.0 (#0x01  = 0000 0001)
+        bic.b   #0x040,&P1OUT   // Desligar P1.6 (#0x040 = 0100 0000)
+        
+        // Loop Principal  ((((((((VERIFICAR))))))))
+A:      bit.b   #0x08,&P1IN     // Compara Subtrai 0x08 (000 1000) de P1IN (ou cmp.b)
+        jnz     set_bit         // Subrotina se P1.3 estiver pressionado
+        call    #press           // Chama Sub-Rotina do Botão pressionado
+        jmp     test_flag       // Testar se a flag Pisca
+        
+        // Subrotina se P1.3 estiver pressionado
+set_bit: mov.b   #0x01,st_bt    // Grava o estado anterior do Pino
+        
+        // Testar se a flag Pisca
+test_flag: cmp.b #0x01,flag_blink // Compara 01 com flag_blink
+        jz      A               // Retorna ao loop principal
+        call    #blink           // Rotina Piscar
+        jmp      A               // Após a rotina Piscar retorna ao loop princ.
+        
+        // Chama Sub-Rotina do Botão pressionado       
+press:  bit.b   #0x01,st_bt     // Compara
+        jz      A                // Retorna a se for Zero
+        mov.b   #0x01,st_bt     // st_bt = 0x01
+        xor.b   #0x01,flag_blink // Inverte Flag Pisca
+        cmp.b   #0x01,flag_blink // Compara 01 com flag_blink
+        jnz     blink            // Piscar LED  
+
+        // Desligar LEDs
+        bic.b   #0x01,&P1OUT    // Desligar P1.0 (#0x01  = 0000 0001)
+        bic.b   #0x040,&P1OUT   // Desligar P1.6 (#0x040 = 0100 0000)
+
+        ret                    // Após a rotina Piscar retorna ao loop princ.
+
+        // Loop de Verificação para piscar
+blink:  call    #delay
+        xor.b   #0x041,&P1OUT   // Inverte os LEDs 0->1 ... 1->0
+        ret
+        // Tempo Ocioso
+delay:  mov.w   #3,cont //62498
+        // Decremento
+decr:   nop
+        dec.w   cont
+        jnz     decr
+        ret
+ end
+ 
