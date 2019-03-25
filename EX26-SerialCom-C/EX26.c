@@ -5,32 +5,32 @@
 /* Configurar uC */
 void config_uC(void)
 {
-    WDTCTL    = WDTPW + WDTHOLD;  // Desabilita o watchdog
-    BCSCTL1   = CALBC1_8MHZ;      // ConfiguraÃ§Ã£o do clock para 8MHz 
-    DCOCTL    = CALDCO_8MHZ;      // ConfiguraÃ§Ã£o do clock para 8MHz 
+    WDTCTL    = WDTPW + WDTHOLD;  // Disable watchdog
+    BCSCTL1   = CALBC1_8MHZ;      // Configure clock to 8MHz 
+    DCOCTL    = CALDCO_8MHZ;      // Configure clock to 8MHz 
     
     P1DIR     = 0x41;
-    P1SEL     = (BIT1 + BIT2);        // Selecionar Função Uart nos pinos P1.1 e P1.2
-    P1SEL2    = (BIT1 + BIT2);        // Selecionar Função Uart nos pinos P1.1 e P1.2
+    P1SEL     = (BIT1 + BIT2);        // Select Uart function to pins P1.1 e P1.2
+    P1SEL2    = (BIT1 + BIT2);        // Select Uart function to pins P1.1 e P1.2
        
-    UCA0CTL1 |= UCSWRST;        // habilitar Uart para configuração
+    UCA0CTL1 |= UCSWRST;        // Enable Uart to configure
     UCA0CTL0  = 0x00;           // USCI A0 Control Register 0
     UCA0CTL1 |= UCSSEL_2;       // USCI A0 Control Register 1 >> USCI 0 Clock Source: 2 (0x80)
-    UCA0MCTL  = UCBRS_3;        // Parte Fracionaria da divisão
-    UCA0BR0   = 0x41;           // USCI A0 Baud Rate 1 - Parte inteira  (0x341)
-    UCA0BR1   = 0x03;           // USCI A0 Baud Rate 0 - Parte inteira  (0x341)
-    UCA0CTL1 &= ~UCSWRST;       // Desabilitar Uart para configuração
+    UCA0MCTL  = UCBRS_3;        // Division Fractional Part
+    UCA0BR0   = 0x41;           // USCI A0 Baud Rate 1 - entire part  (0x341)
+    UCA0BR1   = 0x03;           // USCI A0 Baud Rate 0 - entire part  (0x341)
+    UCA0CTL1 &= ~UCSWRST;       // Disable  Uart to configure
     IE2      |= UCA0RXIE;       // Interrupt Enable 2 >> (0x01)
     
-    __bis_SR_register (GIE);    // Enter LPM0, interrupções habilitado
+    __bis_SR_register (GIE);    // Enter LPM0, Enable Interrupts
 }
 
 
 /* Envia Byte */
 void send_byte( unsigned char byte_send )
 {
-    while(!(IFG2 & UCA0TXIFG));    // UCA0TXIFG seta quando o buffer esta cheio  
-    UCA0TXBUF = byte_send;        // Enviar Bytes para LCD
+    while(!(IFG2 & UCA0TXIFG));    // UCA0TXIFG set when buffer is full  
+    UCA0TXBUF = byte_send;        // send Bytes to LCD
 }
 
 /* Enviar Texto (Utilizando Ponteiro) */
@@ -56,8 +56,8 @@ int main (void){
 
 }  
          
-/* Interrupção Uart */
- #pragma vector = USCIAB0RX_VECTOR      // Interrupção de recebimento
+/* InterrupÃ§Ã£o Uart */
+ #pragma vector = USCIAB0RX_VECTOR      // InterrupÃ§Ã£o de recebimento
     __interrupt void USCI0RX_ISR (void)
 {
     buffer = UCA0RXBUF;      // Buffer recebe byte recebido      
