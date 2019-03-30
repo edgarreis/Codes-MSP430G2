@@ -1,15 +1,18 @@
-/// EXERCICIO 26 //
+/// Exercise 26 //
 
-#include "msp430g2553.h"
+// This program basically Received a Uart interrupt by USCI0RX_ISR, transfer Buffer in a loop until is full, then send it back to UART by UCA0TXBUF cyclically
 
-/* Configurar uC */
+
+#include "msp430g2553.h"            // My Launchpad
+
+/* Config uC */
 void config_uC(void)
 {
     WDTCTL    = WDTPW + WDTHOLD;  // Disable watchdog
     BCSCTL1   = CALBC1_8MHZ;      // Configure clock to 8MHz 
     DCOCTL    = CALDCO_8MHZ;      // Configure clock to 8MHz 
     
-    P1DIR     = 0x41;
+    P1DIR     = 0x41;               // Directions of pins (Output)
     P1SEL     = (BIT1 + BIT2);        // Select Uart function to pins P1.1 e P1.2
     P1SEL2    = (BIT1 + BIT2);        // Select Uart function to pins P1.1 e P1.2
        
@@ -26,60 +29,59 @@ void config_uC(void)
 }
 
 
-/* Envia Byte */
+/* Send Byte */
 void send_byte( unsigned char byte_send )
 {
     while(!(IFG2 & UCA0TXIFG));    // UCA0TXIFG set when buffer is full  
     UCA0TXBUF = byte_send;        // send Bytes to LCD
 }
 
-/* Enviar Texto (Utilizando Ponteiro) */
+/* Send Text (Using Pointer) */
 void send_text(const char *ptr)
 {
     while (*ptr)
     {
-        send_byte(*ptr);        // Correr ponteiro no byte a ser enviado
-        ptr++;                  // Proxima letra da palavra
+        send_byte(*ptr);        // Run pointer in the byte to be sent
+        ptr++;                  // Next letter of word
     }
 }
        
 
-unsigned char buffer;           // Variavel para o Buffer
-int flag = 0;                   // Usado para verificar se o buffer esta cheio
-
+unsigned char buffer;           // Variable of Buffer
+int flag = 0;                   // Used to check if buffer is full
 
 int main (void){
   
-    config_uC();
-    P1OUT = 0x01;
-    while(1);                       // Loop Infinito
+    config_uC();                // Function config uC
+    P1OUT = 0x01;               // turn on the led 
+    while(1);                   // Infinit Loop
 
 }  
          
-/* Interrupção Uart */
- #pragma vector = USCIAB0RX_VECTOR      // Interrupção de recebimento
-    __interrupt void USCI0RX_ISR (void)
+/* Interrupt Uart */
+ #pragma vector = USCIAB0RX_VECTOR      // Received Interrupt
+    __interrupt void USCI0RX_ISR (void) // Received Interrupt
 {
-    buffer = UCA0RXBUF;      // Buffer recebe byte recebido      
-    P1OUT ^= 0x41;
+    buffer = UCA0RXBUF;      // transfers register to Buffer
+    P1OUT ^= 0x41;           // Blink led 
     
-    if(flag == 0 )           // Se o Buffer estiver vazio aguarda carregar
+    if(flag == 0 )           // If the Buffer is empty wait load...
     {
-        send_text("Interface Serial");
-        send_byte(0x0D);       // pula linha
-        send_byte(0x0A);       // inicio da linha
-        send_byte('>');        // Caracter
-        send_byte(buffer);     // Reenvia o que esta no buffer
+        send_text("Serial Interface");  // Send text
+        send_byte(0x0D);       // jump line
+        send_byte(0x0A);       // start of line
+        send_byte('>');        // Character
+        send_byte(buffer);     // Resend what is in buffer
         
-        flag = 1;              // 
+        flag = 1;              // Buffer is full
 
     }
     else
     {
-        send_byte(0x0D);       // pula linha
-        send_byte(0x0A);       // inicio da linha
-        send_byte('>');        // Caracter
-        send_byte(buffer);     // Reenvia o que esta no buffer
+        send_byte(0x0D);       // jump line
+        send_byte(0x0A);       // start of line
+        send_byte('>');        // Character
+        send_byte(buffer);     // Resend what is in buffer
          
     }
        
